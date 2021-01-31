@@ -1,0 +1,48 @@
+Production File System SysCall Traces
+===============================================================================
+This page provides a description of the traces that were used in the 
+preparation of the research article titled "Non-blocking Writes to Files" 
+that appeared in the Proceedings of the USENIX Conference on File and Storage 
+Technologies, February, 2015.  1 day of traces collected during 09/16/2014. 
+All the systems were running Linux using the ext4 and zfs file systems. 
+
+Files                           Description 
+=============                   ======================================= 
+ug-filesrv.tar                  Undergrad NFS/CIFS fileserver 
+gsf-filesrv.tar                 Grad/St aff/Faculty NFS/CIFS fileserver 
+moodle.tar                      Web &  DB server for department CMS 
+backup.tar                      Nightly backups of department servers 
+usr1.tar                        Researcher 1 desktop 
+usr2.tar                        Researcher 2 desktop 
+
+2 minute traces collected while replaying the original Mobibench traces. 
+The replay was done on a Linux system using an ext4 file system. 
+
+Files                           Description 
+===========================     ======================== 
+mobibench-facebook-trace.gz     MobiBench facebook trace 
+mobibench-twitter-trace.gz      MobiBench twitter trace 
+
+The traces files (one per core) are in ASCII and each record is as follows:
+In the case of READ or WRITE:
+     [seq num] [ts in ns] [operation] [inode num] [inode size in Bytes]
+     [offset in Bytes] [size in Bytes] [HIT, MISS or APPEND]
+    * The inode size in Bytes is the size of the file before the write was
+      issued.
+    * For ext4 accesses there is HIT, MISS or APPEND information. Such
+      information is not available for ZFS accesses.
+          * The HIT or MISS tag indicates if the accessed data was a HIT or
+            MISS in the page cache of the system traced. When any part of the
+            data accessed is not available in the page cache, we tag the
+            request as a MISS.
+          * The APPEND tag informs that the file size is increased beyond the
+            page boundary of the last page. Small appends to the file that do
+            not increase the file size to breach the page boundary are not
+            tagged with APPEND.
+In the case of OPEN, CLOSE, FSYNC, FDATASYNC operations, the format is
+different:
+     [seq num] [ts in ns] [operation] [inode num] [inode size in Bytes]
+
+===============================================================================
+This README was converted to text from
+http://sylab-srv.cs.fiu.edu/dokuwiki/doku.php?id=projects:nbw:traces:start
