@@ -3,6 +3,7 @@
 // #include <delay.h>
 #include <stdlib.h>
 // #include <sys/mman.h>
+#include <sys/time.h>
 #include <string.h>
 #include <pthread.h>
 
@@ -11,7 +12,7 @@
  
 
 #define MAX_ORDER 11
-#define THREAD_NUM 19
+#define THREAD_NUM 59
 
 using namespace std;
 
@@ -79,6 +80,10 @@ void init_cpu(){
         if (pthread_create(&(threads[i]), NULL, virtual_cpu, &(cpu_info[i])) != 0) {
             printf("init_cpu %d error\n", i);
         }
+
+        // if(i % 10 == 0){
+        //     usleep(5000000);
+        // }
     }
 }
 
@@ -125,7 +130,7 @@ void allocate_bulk_buddysystem(int batch, cpu_para *cur_cpu_para, deque<int>& pc
         cur_page = allocate_one_buddysystem(0);
 
         if(cur_page == -1){
-            --i;
+            // --i;
             printf("allocate_bulk_buddysystem: buddy no page\n");
             continue;
         }
@@ -247,7 +252,7 @@ void* virtual_cpu(void* cur_para){
     // * print_meminfo中需要获取这一部分信息，所以转为全局变量
     // deque<int> pcp_list;
 
-    int page_num = 3*1024*1024/4; //3G
+    int page_num = 1*1024*1024/4; //1G
     int remain_page_num = page_num;
     int allocate_base = 32; //128K
     int allocate_addition_max = 256*1024/4; //256M
@@ -295,7 +300,7 @@ void* virtual_cpu(void* cur_para){
             mem_size.erase(mem_size.begin()+mem_to_release_idx);
         }
 
-        usleep(rand() % 2000);
+        usleep(rand() % 2000000);
         // sleep(1);
 
         while(remain_page_num > 0){
@@ -313,7 +318,7 @@ void* virtual_cpu(void* cur_para){
             allocated_mem.push_back(cur_allocate_pages);
             mem_size.push_back(cur_allocate_page_num);
         }
-        usleep(rand() % 4000);
+        usleep(rand() % 4000000);
         // sleep(2);
 
     }
@@ -340,7 +345,7 @@ void print_memoryinfo(){
     for(int i = 0; i < THREAD_NUM; ++i){
         // int cur_pcp_list_size = thread_info[i].pcp_list.size();
         int cur_pcp_list_size = pcp_lists[cpu_info[i].cpu_id].size();
-        printf("cpu %d; batch: %d; high: %d; count: %d;\n", cpu_info[i].cpu_id, cpu_info[i].batch, cpu_info[i].high, cur_pcp_list_size);
+        // printf("cpu %d; batch: %d; high: %d; count: %d;\n", cpu_info[i].cpu_id, cpu_info[i].batch, cpu_info[i].high, cur_pcp_list_size);
         frame_pcp_number += cur_pcp_list_size;
     }
 
@@ -358,9 +363,18 @@ void print_memoryinfo(){
     printf("====================================\n");
 }
 
+void print_time(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    printf("time: %d\t%d\n",tv.tv_sec,tv.tv_usec);
+    printf("====================================\n");
+}
+
 
 int main (int argc,char *argv[])   
 {   
+    struct timeval tv;
+
     for(int i = 0; i < MAX_ORDER; ++i){
         total_frame_num += (init_buddy_state[i] * (1 << i));
     }
@@ -374,9 +388,10 @@ int main (int argc,char *argv[])
     init_cpu();
 
     while(true){
-        sleep(1);
+        print_time();
         print_memoryinfo();
         print_buddyinfo();
+        sleep(1);
     }
 
 
